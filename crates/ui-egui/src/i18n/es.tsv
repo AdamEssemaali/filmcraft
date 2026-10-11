@@ -3562,3 +3562,18 @@
 	Edit Project Notes	Editar notas del proyecto
 	Notes for this project: to-dos, instructions, frame numbers… Saved with the project.	Notas de este proyecto: tareas pendientes, instrucciones, números de fotograma… Se guardan con el proyecto.
 	Use Effect Shutter Angle	Usar el ángulo de obturación del efecto
+# Settings ▸ Versions
+	Versions	Versiones
+	Versions…	Versiones…
+	Version switching isn't available in this build.	Esta compilación no permite cambiar de versión.
+	Current version: {version}	Versión actual: {version}
+	Checking GitHub for versions…	Buscando versiones en GitHub…
+	No versions found.	No se encontraron versiones.
+	Pre-release	Versión preliminar
+	Running	En uso
+	Downloading… {percent}%	Descargando… {percent}%
+	Switch	Cambiar
+	Download	Descargar
+	Not available for this system	No disponible para este sistema
+	Switching quits FilmCraft, asking to save your changes first, and opens your project in the chosen version. Older versions may not open projects saved by newer ones.	Al cambiar, FilmCraft se cierra (preguntando antes si quiere guardar los cambios) y abre el proyecto en la versión elegida. Las versiones anteriores pueden no abrir proyectos guardados con versiones más recientes.
+	Downloaded versions are kept in {folder}.	Las versiones descargadas se guardan en {folder}.

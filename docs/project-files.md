@@ -232,6 +232,7 @@ opens the dialog on a page.
 | Plugins | stub (no plugins) |
 | Timeline | video / audio transition and still image default durations (frames or seconds), playback auto-scrolling (none / page / smooth), snap playhead, return to beginning at playback end, play after rendering previews |
 | Trim | Large Trim Offset, Selection tool picks roll (on the cut) / ripple (on the edge) without a modifier, playhead determines trim loop |
+| Versions | no preferences: the FilmCraft releases on GitHub (desktop only). Download fetches this system's file, checks it against the release's `SHA256SUMS.txt` and unpacks it into `<data dir>/Versions/<version>/`; Switch quits (asking to save first) and starts that version on the open project. Commands `app.versions` (state), `app.versions.refresh`, `app.versions.download` / `app.versions.switch` `{version}` |
 
 The remaining fields are kept for parity and shown, but have no effect yet (`wired: false`).
 

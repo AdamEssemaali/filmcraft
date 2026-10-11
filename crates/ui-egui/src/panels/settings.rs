@@ -619,6 +619,7 @@ fn custom(app: &mut FilmcraftApp, ui: &mut Ui, d: &mut SettingsDraft, name: &str
             );
         }
         "appearanceModes" => appearance_modes(app, ui, d),
+        "versions" => crate::panels::versions::page(app, ui),
         "autoSaveStatus" => {
             let status = app.session.execute("file.autoSaveStatus", json!({})).unwrap_or_default();
             if let Some(dir) = status["autoSaveDir"].as_str() {

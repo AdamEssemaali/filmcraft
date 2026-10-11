@@ -26,6 +26,8 @@ filmcraft-time = { workspace = true }
 filmcraft-gpu = { workspace = true }
 filmcraft-ui-egui = { workspace = true }
 filmcraft-platform = { workspace = true }
+# Settings ▸ Versions: release list and checksummed downloads over HTTPS (pure-Rust TLS).
+filmcraft-speech = { workspace = true, features = ["download"] }
 egui = { workspace = true }
 eframe = { workspace = true, features = ["default_fonts", "wgpu", "accesskit", "wayland", "x11"] }
 serde_json = { workspace = true }

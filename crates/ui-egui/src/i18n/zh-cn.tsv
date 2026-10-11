@@ -3540,3 +3540,18 @@
 	Delete Caption Track	删除字幕轨道
 	Delete Caption Tracks	删除多个字幕轨道
 	Delete Empty Caption Tracks	删除空字幕轨道
+# Settings ▸ Versions
+	Versions	版本
+	Versions…	版本…
+	Version switching isn't available in this build.	此版本不支持切换版本。
+	Current version: {version}	当前版本：{version}
+	Checking GitHub for versions…	正在 GitHub 上查找版本…
+	No versions found.	未找到任何版本。
+	Pre-release	预发布
+	Running	正在运行
+	Downloading… {percent}%	正在下载… {percent}%
+	Switch	切换
+	Download	下载
+	Not available for this system	不适用于此系统
+	Switching quits FilmCraft, asking to save your changes first, and opens your project in the chosen version. Older versions may not open projects saved by newer ones.	切换时 FilmCraft 会退出（先询问是否保存更改），并在所选版本中打开您的项目。旧版本可能无法打开由新版本保存的项目。
+	Downloaded versions are kept in {folder}.	已下载的版本保存在 {folder}。

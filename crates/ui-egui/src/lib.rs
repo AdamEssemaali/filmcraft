@@ -152,6 +152,57 @@ pub struct HostHooks {
     /// Files or an image on the system clipboard, for Paste in the Timeline and the Project panel
     /// (#611). Without it Paste only pastes clips copied in FilmCraft.
     pub clipboard_media: Option<Box<dyn FnMut() -> Option<ClipboardMedia>>>,
+    /// Settings ▸ Versions: other FilmCraft releases, downloaded and switched to. Without it the
+    /// page says the build can't switch versions (the web).
+    pub versions: Option<Box<dyn VersionHost>>,
+}
+
+/// Downloads FilmCraft releases and starts one of them in place of this session (Settings ▸
+/// Versions). Downloads and the release list run in the background; [`Self::state`] reports them.
+pub trait VersionHost {
+    fn state(&self) -> VersionsState;
+    /// Fetch the list of releases.
+    fn refresh(&mut self);
+    /// Download and unpack `version`.
+    fn download(&mut self, version: &str);
+    /// Start the downloaded `version`, opening `project`, once this session has quit.
+    fn switch_to(&mut self, version: &str, project: Option<&str>) -> Result<(), String>;
+    /// The quit was cancelled: start nothing.
+    fn cancel_switch(&mut self);
+}
+
+#[derive(Clone, Debug, Default, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct VersionsState {
+    /// The version running.
+    pub current: String,
+    /// Newest first.
+    pub releases: Vec<VersionInfo>,
+    /// The list was fetched (or fetching it failed).
+    pub checked: bool,
+    pub loading: bool,
+    pub downloading: Option<VersionDownload>,
+    pub error: String,
+    /// Where downloaded versions are kept.
+    pub folder: String,
+}
+
+#[derive(Clone, Debug, Default, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct VersionInfo {
+    pub version: String,
+    /// `YYYY-MM-DD`.
+    pub date: String,
+    pub prerelease: bool,
+    /// Downloaded: can be switched to.
+    pub installed: bool,
+    /// Has a download for this system.
+    pub available: bool,
+}
+
+#[derive(Clone, Debug, Default, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct VersionDownload {
+    pub version: String,
+    pub done: u64,
+    pub total: u64,
 }
 
 /// What [`HostHooks::clipboard_media`] found on the system clipboard.

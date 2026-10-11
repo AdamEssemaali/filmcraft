@@ -158,6 +158,7 @@ pub const UI_COMMANDS: &[UiCommand] = &[
     uic!("app.settings.plugins", "Plugins…", ["Edit", "Preferences"], None),
     uic!("app.settings.timeline", "Timeline…", ["Edit", "Preferences"], None),
     uic!("app.settings.trim", "Trim…", ["Edit", "Preferences"], None),
+    uic!("app.settings.versions", "Versions…", ["Edit", "Preferences"], None),
 ];
 
 pub fn panel_command_id(p: PanelKind) -> String {
@@ -275,6 +276,9 @@ pub fn invoke(app: &mut FilmcraftApp, ctx: &egui::Context, id: &str, mut params:
         return r;
     }
     if let Some(r) = crate::panels::settings::route(app, id) {
+        return r;
+    }
+    if let Some(r) = crate::panels::versions::route(app, ctx, id, &params) {
         return r;
     }
     if let Some(r) = crate::panels::graphics_templates::route(app, ctx, id, &params) {

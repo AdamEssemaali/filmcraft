@@ -589,6 +589,9 @@ pub fn show(app: &mut FilmcraftApp, ctx: &egui::Context) {
     }
     match action {
         Some("cancel") => {
+            if d.command == "app.quit" {
+                crate::panels::versions::cancel_switch(app);
+            }
             app.ui.clip_dialog = None;
             return;
         }
@@ -612,6 +615,7 @@ pub fn show(app: &mut FilmcraftApp, ctx: &egui::Context) {
                 if let Err(e) = saved {
                     app.ui.status = e;
                     app.ui.clip_dialog = None;
+                    crate::panels::versions::cancel_switch(app);
                     return;
                 }
                 // the Save dialog was cancelled: back to the prompt

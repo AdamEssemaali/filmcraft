@@ -52,6 +52,7 @@ pub mod tools;
 pub mod transition_controls;
 pub mod trim_monitor;
 pub mod tts;
+pub mod versions;
 pub mod voiceover;
 pub mod workspaces;
 

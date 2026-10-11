@@ -36,6 +36,7 @@ mod graphics;
 mod logging;
 #[cfg(target_os = "macos")]
 mod native_menu;
+mod versions;
 mod window_raise;
 
 use args::{Cli, Launch};
@@ -143,6 +144,10 @@ fn main() -> eframe::Result {
         graphics::configure(&mut options, eframe::wgpu::Backends::from_env());
         options
     };
+    // Settings ▸ Versions: the version to start once the window has closed.
+    let launch = versions::Launch::default();
+    let launch_slot = launch.clone();
+    let versions_dir = data_dir.clone().or_else(default_data_dir);
     let started = eframe::run_native(
         "FilmCraft",
         options,
@@ -242,6 +247,9 @@ fn main() -> eframe::Result {
             // that waits for the browser never freezes the UI.
             app.hooks.open_url = Some(Box::new(|url: &str| open::that_detached(url).map_err(|e| e.to_string())));
             app.hooks.clipboard_media = Some(Box::new(clipboard_media));
+            if let Some(dir) = &versions_dir {
+                app.hooks.versions = Some(Box::new(versions::Host::new(dir, launch_slot.clone())));
+            }
             // Settings ▸ General ▸ Interface Language ▸ System Language (#218).
             app.hooks.cursor_screen_position = Some(Box::new(filmcraft_platform::cursor::cursor_screen_position));
             app.hooks.system_languages = Some(Box::new(|| sys_locale::get_locales().collect()));
@@ -283,6 +291,10 @@ fn main() -> eframe::Result {
         let msg = format!("FilmCraft could not start its window: {e}\n\nUpdating the graphics driver usually fixes this.");
         log::error!("{msg}");
         filmcraft_ui_egui::crash::record(&msg);
+        let _ = rfd::MessageDialog::new().set_title("FilmCraft").set_description(&msg).set_level(rfd::MessageLevel::Error).show();
+    }
+    if let Err(msg) = versions::take_launch(&launch) {
+        log::error!("{msg}");
         let _ = rfd::MessageDialog::new().set_title("FilmCraft").set_description(&msg).set_level(rfd::MessageLevel::Error).show();
     }
     started

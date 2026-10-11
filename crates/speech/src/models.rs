@@ -230,51 +230,76 @@ pub fn download(models_dir: &Path, m: &ModelInfo, progress: DownloadProgress) ->
 /// place.
 #[cfg(feature = "download")]
 pub fn download_files(dir: &Path, files: &[ModelFile], progress: DownloadProgress) -> Result<(), crate::SpeechError> {
-    use crate::SpeechError;
-    use sha2::Digest;
-    use std::io::{Read, Write};
     std::fs::create_dir_all(dir)?;
     let total: u64 = files.iter().filter(|f| !std::fs::metadata(dir.join(f.name)).is_ok_and(|md| md.len() == f.size)).map(|f| f.size).sum();
-    let agent = agent();
     let mut done = 0u64;
     for f in files {
         let dest = dir.join(f.name);
         if std::fs::metadata(&dest).is_ok_and(|md| md.len() == f.size) {
             continue;
         }
-        let part = dir.join(format!("{}.part", f.name));
-        let resp = agent.get(f.url).call().map_err(|e| SpeechError::Download(format!("{}: {e}", f.url)))?;
-        let mut body = resp.into_body();
-        let mut reader = body.as_reader();
-        let mut out = std::io::BufWriter::new(std::fs::File::create(&part)?);
-        let mut hasher = sha2::Sha256::new();
-        let mut buf = vec![0u8; 1 << 20];
-        let mut got = 0u64;
-        loop {
-            let n = reader.read(&mut buf).map_err(|e| SpeechError::Download(format!("{}: {e}", f.name)))?;
-            if n == 0 {
-                break;
-            }
-            hasher.update(&buf[..n]);
-            out.write_all(&buf[..n])?;
-            got += n as u64;
-            if !progress(done + got, total, f.name) {
-                drop(out);
-                let _ = std::fs::remove_file(&part);
-                return Err(SpeechError::Cancelled);
-            }
-        }
-        out.flush()?;
-        drop(out);
-        let sha: String = hasher.finalize().iter().map(|b| format!("{b:02x}")).collect();
-        if sha != f.sha256 || got != f.size {
-            let _ = std::fs::remove_file(&part);
-            return Err(SpeechError::Download(format!("{}: checksum mismatch (got {sha}, {got} bytes; expected {}, {} bytes)", f.name, f.sha256, f.size)));
-        }
-        std::fs::rename(&part, &dest)?;
+        download_verified(f.url, &dest, f.sha256, f.size, &mut |got| progress(done + got, total, f.name))?;
         done += f.size;
     }
     Ok(())
+}
+
+/// Stream `url` into `<dest>.part` and rename it to `dest` once exactly `size` bytes with SHA-256
+/// `sha256` (lowercase hex) have arrived; anything else deletes the part file and fails.
+/// `progress(bytes so far)` returns false to cancel. Settings ▸ Versions downloads releases with it.
+#[cfg(feature = "download")]
+pub fn download_verified(url: &str, dest: &Path, sha256: &str, size: u64, progress: &mut dyn FnMut(u64) -> bool) -> Result<(), crate::SpeechError> {
+    use crate::SpeechError;
+    use sha2::Digest;
+    use std::io::{Read, Write};
+    let name = dest.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_default();
+    let mut part = dest.as_os_str().to_owned();
+    part.push(".part");
+    let part = PathBuf::from(part);
+    let resp = agent().get(url).call().map_err(|e| SpeechError::Download(format!("{url}: {e}")))?;
+    let mut body = resp.into_body();
+    let mut reader = body.as_reader();
+    let mut out = std::io::BufWriter::new(std::fs::File::create(&part)?);
+    let mut hasher = sha2::Sha256::new();
+    let mut buf = vec![0u8; 1 << 20];
+    let mut got = 0u64;
+    let fail = |e: SpeechError| {
+        let _ = std::fs::remove_file(&part);
+        Err(e)
+    };
+    loop {
+        let n = match reader.read(&mut buf) {
+            Ok(n) => n,
+            Err(e) => return fail(SpeechError::Download(format!("{name}: {e}"))),
+        };
+        let Some(chunk) = buf.get(..n).filter(|c| !c.is_empty()) else { break };
+        got = got.saturating_add(n as u64);
+        if got > size {
+            drop(out);
+            return fail(SpeechError::Download(format!("{name}: more than the expected {size} bytes")));
+        }
+        hasher.update(chunk);
+        out.write_all(chunk)?;
+        if !progress(got) {
+            drop(out);
+            return fail(SpeechError::Cancelled);
+        }
+    }
+    out.flush()?;
+    drop(out);
+    let sha: String = hasher.finalize().iter().map(|b| format!("{b:02x}")).collect();
+    if sha != sha256 || got != size {
+        return fail(SpeechError::Download(format!("{name}: checksum mismatch (got {sha}, {got} bytes; expected {sha256}, {size} bytes)")));
+    }
+    std::fs::rename(&part, dest)?;
+    Ok(())
+}
+
+/// GET `url` as text (at most ureq's 10 MB body limit).
+#[cfg(feature = "download")]
+pub fn fetch_text(url: &str) -> Result<String, crate::SpeechError> {
+    let err = |e: ureq::Error| crate::SpeechError::Download(format!("{url}: {e}"));
+    agent().get(url).call().map_err(err)?.into_body().read_to_string().map_err(err)
 }
 
 #[cfg(feature = "download")]

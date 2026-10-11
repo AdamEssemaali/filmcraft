@@ -1126,6 +1126,8 @@ static CATEGORIES: &[Category] = &[
             b("trim.dynamicRippleUpdates", "Update timeline dynamically during ripple edits.", false),
         ],
     },
+    // FilmCraft's own: other releases, downloaded and switched to (no preferences).
+    Category { id: "versions", title: "Versions", rows: &[Row::Custom("versions")] },
 ];
 
 /// Every field of every category (groups flattened), in dialog order.
